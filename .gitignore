@@ -1,0 +1,82 @@
+# ===================================
+# Node & Dependencies
+# ===================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+
+# ===================================
+# Build Output
+# ===================================
+dist/
+build/
+.next/
+out/
+coverage/
+.cache/
+.temp/
+tmp/
+
+# ===================================
+# Environment Files
+# ===================================
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+.env.*
+!.env.example
+
+# ===================================
+# Logs
+# ===================================
+*.log
+logs
+*.pid
+*.seed
+*.pid.lock
+
+# ===================================
+# Editor & OS Files
+# ===================================
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*.bak
+*.tmp
+
+# ===================================
+# Backend Specific (Express/Mongo)
+# ===================================
+/backend/uploads/
+/backend/.env
+/backend/node_modules/
+/backend/dist/
+/backend/tmp/
+
+# ===================================
+# Frontend Specific (Vite + React)
+# ===================================
+/frontend/node_modules/
+/frontend/dist/
+/frontend/.env
+/frontend/.env.local
+/frontend/.vercel
+/frontend/.netlify
+/frontend/.output
+
+# ===================================
+# Misc
+# ===================================
+*.tar.gz
+*.tgz
+*.zip
+*.rar
+*.7z
