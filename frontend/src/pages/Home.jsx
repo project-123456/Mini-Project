@@ -1,7 +1,15 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+export default function Home({ user }) {
+  const navigate = useNavigate();
 
-export default function Home() {
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user]);
   const leaves = [
     { left: "10%", delay: 0 },
     { left: "40%", delay: 2 },

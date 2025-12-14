@@ -24,14 +24,31 @@ function App() {
 
 
   useEffect(() => {
-    if (token) {
-      getUserProfile(token).then((res) => {
-        if (res?.email) setUser(res);
-      });
-      getJournals(token).then(setJournals);
-      getMoods(token).then(setMoods);
+  if (!token) {
+    setUser(null);
+    return; // ⛔ STOP HERE
+  }
+
+  const loadData = async () => {
+    try {
+      const profile = await getUserProfile(token);
+      setUser(profile);
+
+      const journalsData = await getJournals(token);
+      setJournals(journalsData);
+
+      const moodsData = await getMoods(token);
+      setMoods(moodsData);
+    } catch (err) {
+      console.error("AUTH FAILED, CLEARING TOKEN");
+      localStorage.removeItem("token");
+      setUser(null);
     }
-  }, [token]);
+  };
+
+  loadData();
+}, []); // 👈 IMPORTANT: empty dependency
+
 
   // Add new journal
   const handleAddJournal = async (data) => {
@@ -43,7 +60,7 @@ function App() {
     <Router>
       <Navbar user={user} setUser={setUser} />
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<Home user={user}/>} />
         <Route path="/dashboard" element={<Dashboard user={user} />} />
         <Route path="/login" element={<Login setUser={setUser} />} />
         <Route path="/register" element={<Register />} />

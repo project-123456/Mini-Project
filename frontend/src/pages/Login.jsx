@@ -14,6 +14,11 @@ export default function Login({ setUser }) {
     try {
       const res = await loginUser({ email, password });
       // res should be { token, user }
+      console.log("LOGIN RESPONSE 👉", res);
+      if (!res.token) {
+  throw new Error("Token not received");
+}
+
       localStorage.setItem("token", res.token);
       setUser(res.user);
       navigate("/dashboard"); // or '/'

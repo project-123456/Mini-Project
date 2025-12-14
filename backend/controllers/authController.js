@@ -19,20 +19,40 @@ export const registerUser = async (req, res) => {
 
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ message: "Please provide email & password" });
 
   const user = await User.findOne({ email });
   if (user && (await user.matchPassword(password))) {
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    console.log("JWT ISSUED 👉", token); // 👈 ADD THIS
+
     return res.json({
-      token: createToken(user._1d || user._id),
-      user: { _id: user._id, name: user.name, email: user.email },
+      token,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+      },
     });
   }
-  return res.status(401).json({ message: "Invalid credentials" });
+
+  res.status(401).json({ message: "Invalid credentials" });
 };
 
-export const getProfile = async (req, res) => {
-  // req.user set by auth middleware
-  if (!req.user) return res.status(401).json({ message: "Not authorized" });
-  res.json({ _id: req.user._id, name: req.user.name, email: req.user.email });
+
+
+export const getProfile = async (token) => {
+  console.log("FRONTEND TOKEN 👉", token); // 👈 ADD THIS
+
+  const res = await fetch(`${API_URL}/auth/profile`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  return res.json();
 };

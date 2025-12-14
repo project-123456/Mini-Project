@@ -17,7 +17,7 @@ export default function Register() {
       const res = await registerUser({ name, email, password });
       if (res.token) {
         localStorage.setItem("token", res.token);
-        navigate("/");
+        navigate("/dashboard");
       } else {
         setError(res.message || "Registration failed");
       }
