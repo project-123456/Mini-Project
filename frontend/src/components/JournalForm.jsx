@@ -1,72 +1,88 @@
-// Example: Journal.jsx
-import React, { useState } from "react";
+import { useState } from "react";
+import { motion } from "framer-motion";
 
-export default function Journal() {
-  const [mood, setMood] = useState("calm");
+const ACTIVITIES = [
+  { label: "Family", icon: "👨‍👩‍👧" },
+  { label: "Friends", icon: "🧑‍🤝‍🧑" },
+  { label: "Exercise", icon: "🏃" },
+  { label: "Relax", icon: "🌿" },
+  { label: "Movies", icon: "🎬" },
+  { label: "Reading", icon: "📖" },
+  { label: "Gaming", icon: "🎮" },
+  { label: "Shopping", icon: "🛒" },
+];
 
-  const moodStyles = {
-    happy: {
-      bg: "bg-yellow-100",
-      emoji: "🌻",
-      text: "text-yellow-800",
-    },
-    calm: {
-      bg: "bg-blue-100",
-      emoji: "🌿",
-      text: "text-blue-800",
-    },
-    reflective: {
-      bg: "bg-purple-100",
-      emoji: "🌙",
-      text: "text-purple-800",
-    },
-    sad: {
-      bg: "bg-gray-100",
-      emoji: "🌧️",
-      text: "text-gray-700",
-    },
-    healing: {
-      bg: "bg-orange-100",
-      emoji: "🌈",
-      text: "text-orange-800",
-    },
+export default function JournalForm({ onSubmit }) {
+  const [note, setNote] = useState("");
+  const [selected, setSelected] = useState([]);
+
+  const toggleActivity = (a) => {
+    setSelected((prev) =>
+      prev.includes(a)
+        ? prev.filter((x) => x !== a)
+        : [...prev, a]
+    );
   };
 
-  const currentMood = moodStyles[mood];
+  const handleSave = () => {
+    if (!note.trim() && selected.length === 0) return;
+
+    onSubmit({
+      title: "Daily Journal",
+      content: note,
+      tags: selected,
+    });
+
+    setNote("");
+    setSelected([]);
+  };
 
   return (
-    <div
-      className={`min-h-screen flex flex-col items-center justify-center transition-all duration-700 ${currentMood.bg}`}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-white/80 backdrop-blur-lg rounded-3xl p-6 shadow-md"
     >
-      <h1 className={`text-4xl font-bold mb-4 ${currentMood.text}`}>
-        {currentMood.emoji} Write a Journal
-      </h1>
+      <h2 className="text-lg font-semibold text-center mb-4">
+        What have you been up to?
+      </h2>
 
-      <select
-        className="mb-6 px-4 py-2 rounded-lg border border-gray-300"
-        onChange={(e) => setMood(e.target.value)}
-      >
-        <option value="happy">Happy 🌻</option>
-        <option value="calm">Calm 🌿</option>
-        <option value="reflective">Reflective 🌙</option>
-        <option value="sad">Sad 🌧️</option>
-        <option value="healing">Healing 🌈</option>
-      </select>
-
-      <div className="w-96 bg-white shadow-lg rounded-xl p-6">
-        <input
-          type="text"
-          placeholder="Title"
-          className="w-full mb-3 p-3 rounded-md border border-gray-300"
-        />
-        <textarea
-          placeholder="How are you feeling today?"
-          className="w-full p-3 h-32 rounded-md border border-gray-300"
-        ></textarea>
-        <button className="mt-4 bg-indigo-500 text-white px-6 py-2 rounded-lg hover:bg-indigo-600 transition">
-          Save ✨
-        </button>
+      {/* Activities */}
+      <div className="grid grid-cols-4 gap-4 mb-6">
+        {ACTIVITIES.map((a) => (
+          <button
+            key={a.label}
+            onClick={() => toggleActivity(a.label)}
+            className={`flex flex-col items-center p-3 rounded-2xl transition ${
+              selected.includes(a.label)
+                ? "bg-emerald-100 scale-105"
+                : "bg-gray-100 hover:bg-gray-200"
+            }`}
+          >
+            <span className="text-2xl">{a.icon}</span>
+            <span className="text-xs mt-1">{a.label}</span>
+          </button>
+        ))}
       </div>
-    </div>
+
+      {/* Note */}
+      <textarea
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
+        placeholder="Write a note about your day..."
+        className="w-full h-28 p-4 rounded-xl bg-gray-100 resize-none outline-none"
+      />
+
+      {/* Save */}
+      <div className="flex justify-center mt-6">
+        <motion.button
+          whileTap={{ scale: 0.9 }}
+          onClick={handleSave}
+          className="w-14 h-14 rounded-full bg-emerald-500 text-white text-xl shadow-lg"
+        >
+          ✓
+        </motion.button>
+      </div>
+    </motion.div>
   );
 }
