@@ -39,9 +39,7 @@ export default function Navbar({ user, setUser }) {
               Journals
             </Link>
 
-            <Link to="/journalBot" className="font-medium">
-              JournalBot
-            </Link>
+            
 
             <Link to="/moods" className="font-medium">
               Mood Tracker

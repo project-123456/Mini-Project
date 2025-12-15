@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Navbar from "./components/Navbar";
 import Insights from "./components/Insights";
-import FloatingChatbot from "./components/FloatingChatbot";
+import FloatingChatbot from "./components/ChatBot";
 
 import Dashboard from "./components/Dashboard";
 import Login from "./pages/Login";
