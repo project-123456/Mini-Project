@@ -28,7 +28,7 @@ export const loginUser = async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    console.log("JWT ISSUED 👉", token); // 👈 ADD THIS
+    // console.log("JWT ISSUED 👉", token); // 👈 ADD THIS
 
     return res.json({
       token,
@@ -43,16 +43,9 @@ export const loginUser = async (req, res) => {
   res.status(401).json({ message: "Invalid credentials" });
 };
 
+const API_URL = "http://localhost:5000/api";
 
-
-export const getProfile = async (token) => {
-  console.log("FRONTEND TOKEN 👉", token); // 👈 ADD THIS
-
-  const res = await fetch(`${API_URL}/auth/profile`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  return res.json();
+export const getProfile = async (req, res) => {
+  res.json(req.user);
 };
+

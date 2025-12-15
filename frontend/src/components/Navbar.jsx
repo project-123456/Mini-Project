@@ -33,6 +33,8 @@ export default function Navbar({ user, setUser }) {
             <Link to="/dashboard" className="font-medium">
               Dashboard
             </Link>
+            <Link to="/about" className="font-medium">About</Link>
+
             <Link to="/journals" className="font-medium">
               Journals
             </Link>
@@ -44,9 +46,6 @@ export default function Navbar({ user, setUser }) {
             <Link to="/moods" className="font-medium">
               Mood Tracker
             </Link>
-
-            <Link to="/insights">Insights</Link>
-
             <button
               onClick={handleLogout}
               className="text-red-500 font-medium"

@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { uploadImage } from "../utils/api";
+import { toBase64 } from "../utils/toBase64";
 
 const ACTIVITIES = [
   { label: "Family", icon: "👨‍👩‍👧" },
@@ -15,26 +17,47 @@ const ACTIVITIES = [
 export default function JournalForm({ onSubmit }) {
   const [note, setNote] = useState("");
   const [selected, setSelected] = useState([]);
+  const [imageUrl, setImageUrl] = useState(null);
+  const [uploading, setUploading] = useState(false);
+
+  const token = localStorage.getItem("token");
 
   const toggleActivity = (a) => {
     setSelected((prev) =>
-      prev.includes(a)
-        ? prev.filter((x) => x !== a)
-        : [...prev, a]
+      prev.includes(a) ? prev.filter((x) => x !== a) : [...prev, a]
     );
   };
 
+  const handleImageUpload = async (file) => {
+    if (!file) return;
+    setUploading(true);
+
+    try {
+      const base64 = await toBase64(file);
+      const res = await uploadImage(base64, token);
+      if (res?.url) {
+        setImageUrl(res.url);
+      }
+    } catch (err) {
+      console.error("Image upload failed", err);
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleSave = () => {
-    if (!note.trim() && selected.length === 0) return;
+    if (!note.trim() && selected.length === 0 && !imageUrl) return;
 
     onSubmit({
       title: "Daily Journal",
       content: note,
       tags: selected,
+      image: imageUrl,
     });
 
     setNote("");
     setSelected([]);
+    setImageUrl(null);
   };
 
   return (
@@ -63,6 +86,29 @@ export default function JournalForm({ onSubmit }) {
             <span className="text-xs mt-1">{a.label}</span>
           </button>
         ))}
+      </div>
+
+      {/* Image Upload */}
+      <div className="mb-4">
+        <label className="cursor-pointer inline-block px-4 py-2 bg-gray-200 rounded-xl text-sm hover:bg-gray-300">
+          {uploading ? "Uploading..." : "Add Photo"}
+          <input
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={(e) => handleImageUpload(e.target.files[0])}
+          />
+        </label>
+
+        {imageUrl && (
+          <motion.img
+            src={imageUrl}
+            alt="preview"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mt-4 rounded-xl max-h-48 w-full object-cover"
+          />
+        )}
       </div>
 
       {/* Note */}

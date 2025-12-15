@@ -11,6 +11,7 @@ import Home from "./pages/Home";
 import Profile from "./pages/Profile";
 import MoodTracker from "./components/MoodTracker";
 import JournalForm from "./components/JournalForm";
+import About from "./pages/About";
 import JournalList from "./components/JournalList";
 import JournalBot from "./components/JournalBot";
 
@@ -31,7 +32,7 @@ function App() {
   useEffect(() => {
   if (!token) {
     setUser(null);
-    return; // ⛔ STOP HERE
+    return;
   }
 
   const loadData = async () => {
@@ -45,14 +46,14 @@ function App() {
       const moodsData = await getMoods(token);
       setMoods(moodsData);
     } catch (err) {
-      console.error("AUTH FAILED, CLEARING TOKEN");
       localStorage.removeItem("token");
       setUser(null);
     }
   };
 
   loadData();
-}, []); // 👈 IMPORTANT: empty dependency
+}, [token]); // ✅ THIS FIXES NAME ISSUE
+
 
 
   // Add new journal
@@ -76,6 +77,8 @@ function App() {
         <Route path="/login" element={<Login setUser={setUser} />} />
         <Route path="/register" element={<Register />} />
         <Route path="/profile" element={<Profile user={user} />} />
+        <Route path="/about" element={<About user={user}/>} />
+
         <Route
           path="/journals"
           element={

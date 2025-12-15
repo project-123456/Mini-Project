@@ -1,9 +1,20 @@
 import Journal from "../models/Journal.js";
+export const uploadImage = async (base64, token) => {
+  const res = await fetch("http://localhost:5000/api/upload", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ file: base64 }),
+  });
+  return res.json();
+};
 
 export const createJournal = async (req, res) => {
   try {
-    const { title, content, tags } = req.body;
-    const journal = new Journal({ user: req.user.id, title, content, tags });
+    const { title, content, tags , image} = req.body;
+    const journal = new Journal({ user: req.user.id, title, content, tags,image });
     await journal.save();
     res.status(201).json(journal);
   } catch (error) {

@@ -44,6 +44,19 @@ export const addJournal = async (data, token) => {
   return res.json();
 };
 
+export const uploadImage = async (base64, token) => {
+  const res = await fetch(`${API_URL}/upload`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ file: base64 }),
+  });
+
+  return res.json();
+};
+
 export const logMood = async (data, token) => {
   const res = await fetch(`${API_URL}/moods`, {
     method: "POST",

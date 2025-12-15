@@ -36,10 +36,20 @@ export default function JournalList({ journals }) {
               ))}
             </div>
           )}
-
+          {j.image && (
+            <div className="mt-4 overflow-hidden rounded-xl">
+              <img
+                src={j.image}
+                alt="journal"
+                className="w-full max-h-72 object-cover"
+                loading="lazy"
+              />
+            </div>
+          )}
           {/* Note */}
           {j.content && (
             <p className="mt-3 text-gray-700 leading-relaxed">
+              
               {j.content}
             </p>
           )}
