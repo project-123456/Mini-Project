@@ -1,9 +1,13 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FaSmile, FaBook, FaChartLine } from "react-icons/fa";
+import JournalBot from "./JournalBot";
+
 
 export default function Dashboard({ user }) {
   const navigate = useNavigate();
+  const location = useLocation();
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#eef2f7] via-[#f7f8fc] to-[#eef2f7] p-6">
@@ -17,7 +21,8 @@ export default function Dashboard({ user }) {
           className="flex flex-col gap-2"
         >
           <h1 className="text-4xl font-semibold text-gray-800">
-            Welcome back{user?.name && `, ${user.name}`} 🌿
+            Welcome back, {location.state?.name || user?.name || "User"} 🌿
+
           </h1>
           <p className="text-gray-500 max-w-xl">
             Take a deep breath. This space is for your thoughts, feelings, and growth.
@@ -59,6 +64,8 @@ export default function Dashboard({ user }) {
             whileHover={{ y: -6 }}
             className="cursor-pointer rounded-3xl bg-white/70 backdrop-blur-xl shadow-lg p-6"
             onClick={() => navigate("/moods")}
+
+
           >
             <div className="w-12 h-12 rounded-2xl bg-yellow-100 flex items-center justify-center mb-4">
               <FaSmile className="text-yellow-500 text-xl" />
@@ -76,6 +83,7 @@ export default function Dashboard({ user }) {
             whileHover={{ y: -6 }}
             className="cursor-pointer rounded-3xl bg-white/70 backdrop-blur-xl shadow-lg p-6"
             onClick={() => navigate("/journals")}
+
           >
             <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center mb-4">
               <FaBook className="text-blue-500 text-xl" />

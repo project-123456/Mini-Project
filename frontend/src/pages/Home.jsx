@@ -1,7 +1,10 @@
+
+
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+
 export default function Home({ user }) {
   const navigate = useNavigate();
 
@@ -18,6 +21,8 @@ export default function Home({ user }) {
 
   return (
     <div className="relative flex flex-col justify-center items-center min-h-screen overflow-hidden text-[#3b3b3b] font-['Poppins']">
+     
+
       {/* Animated Gradient Background */}
       <motion.div
         className="absolute inset-0"
@@ -31,17 +36,19 @@ export default function Home({ user }) {
         transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
       />
 
+
       {/* Soft Floating Bubbles */}
       {[...Array(6)].map((_, i) => (
         <motion.div
           key={i}
           className="absolute bg-white/25 rounded-full blur-3xl"
           style={{
-            width: `${80 + i * 10}px`,
-            height: `${80 + i * 10}px`,
-            top: `${10 + i * 10}%`,
-            left: `${5 + i * 15}%`,
-          }}
+           width: `${80 + i * 10}px`,
+          height: `${80 + i * 10}px`,
+           top: `${10 + i * 10}%`,
+           left: `${5 + i * 15}%`,
+        }}
+
           animate={{
             y: [0, 25, 0],
             opacity: [0.5, 0.7, 0.5],
@@ -87,11 +94,28 @@ export default function Home({ user }) {
         <h1 className="text-5xl md:text-6xl font-bold mb-6 text-[#2f3f3f] drop-shadow-sm">
           Welcome to <span className="text-[#6a8c68]">MindJournal 🌿</span>
         </h1>
+        <br>
 
+
+
+        </br>
         <p className="text-lg md:text-xl mb-10 text-[#4b4b4b] max-w-2xl mx-auto leading-relaxed">
           A <span className="italic text-[#6b8e7a]">haven of serenity</span> to unwind, reflect, and grow.  
           Take a deep breath, write your thoughts, and let your soul heal 💫
         </p>
+
+        <p className="mt-3 text-center text-sm font-medium 
+             bg-gradient-to-r from-emerald-600 via-green-500 to-lime-500 
+             bg-clip-text text-transparent">
+          “Every thought you write here is a step closer to understanding yourself.”
+        </p>
+
+
+        <br>
+
+
+
+        </br>
 
         <div className="flex flex-wrap justify-center gap-4">
           <Link
@@ -115,6 +139,8 @@ export default function Home({ user }) {
         animate={{ opacity: [0.3, 0.6, 0.3] }}
         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
       />
+
+      
     </div>
   );
 }

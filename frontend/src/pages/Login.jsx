@@ -21,7 +21,10 @@ export default function Login({ setUser }) {
 
       localStorage.setItem("token", res.token);
       setUser(res.user);
-      navigate("/dashboard"); // or '/'
+      navigate("/dashboard", {
+        state: { name: "Laxmi" }
+      });
+ // or '/'
     } catch (err) {
       setError(err.message);
     }

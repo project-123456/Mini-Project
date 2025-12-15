@@ -36,9 +36,17 @@ export default function Navbar({ user, setUser }) {
             <Link to="/journals" className="font-medium">
               Journals
             </Link>
+
+            <Link to="/journalBot" className="font-medium">
+              JournalBot
+            </Link>
+
             <Link to="/moods" className="font-medium">
               Mood Tracker
             </Link>
+
+            <Link to="/insights">Insights</Link>
+
             <button
               onClick={handleLogout}
               className="text-red-500 font-medium"
