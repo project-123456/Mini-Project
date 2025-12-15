@@ -95,8 +95,7 @@ export default function Home({ user }) {
           Welcome to <span className="text-[#6a8c68]">MindJournal 🌿</span>
         </h1>
         <br>
-
-
+        
 
         </br>
         <p className="text-lg md:text-xl mb-10 text-[#4b4b4b] max-w-2xl mx-auto leading-relaxed">
@@ -107,7 +106,9 @@ export default function Home({ user }) {
         <p className="mt-3 text-center text-sm font-medium 
              bg-gradient-to-r from-emerald-600 via-green-500 to-lime-500 
              bg-clip-text text-transparent">
-          “Every thought you write here is a step closer to understanding yourself.”
+          “Our Plateform provides a calm and supportive space for users to write their
+        thoughts and receive emotional guidance through an AI-powered mental
+        health chatbot.”
         </p>
 
 

@@ -21,7 +21,7 @@ export default function Dashboard({ user }) {
           className="flex flex-col gap-2"
         >
           <h1 className="text-4xl font-semibold text-gray-800">
-            Welcome back, {location.state?.name || user?.name || "User"} 🌿
+            Welcome back, {location.state?.name || user?.div || "Laxmi"} 🌿
 
           </h1>
           <p className="text-gray-500 max-w-xl">
