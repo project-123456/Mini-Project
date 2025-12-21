@@ -13,6 +13,6 @@ services:
     ports:
       - "3000:3000"
     env_file:
-      - ./frontend/.env
+      - ./frontend/.env.example
     depends_on:
       - backend
