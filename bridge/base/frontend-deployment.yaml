@@ -1,0 +1,35 @@
+#! frontend-deployment.yaml
+# Generated code, do not edit
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: frontend
+    namespace: mini-project
+    labels:
+        com.docker.compose.project: mini-project
+        com.docker.compose.service: frontend
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            com.docker.compose.project: mini-project
+            com.docker.compose.service: frontend
+    strategy:
+        type: Recreate
+    template:
+        metadata:
+            labels:
+                com.docker.compose.project: mini-project
+                com.docker.compose.service: frontend
+                com.docker.compose.network.default: "true"
+        spec:
+            containers:
+                - name: frontend
+                  image: mini-project-frontend
+                  imagePullPolicy: IfNotPresent
+                  env:
+                    - name: VITE_API_URL
+                      value: "http://localhost:5000/api"
+                  ports:
+                    - name: frontend-3000
+                      containerPort: 3000

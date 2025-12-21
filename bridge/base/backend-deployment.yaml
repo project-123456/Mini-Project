@@ -1,0 +1,45 @@
+#! backend-deployment.yaml
+# Generated code, do not edit
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: backend
+    namespace: mini-project
+    labels:
+        com.docker.compose.project: mini-project
+        com.docker.compose.service: backend
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            com.docker.compose.project: mini-project
+            com.docker.compose.service: backend
+    strategy:
+        type: Recreate
+    template:
+        metadata:
+            labels:
+                com.docker.compose.project: mini-project
+                com.docker.compose.service: backend
+                com.docker.compose.network.default: "true"
+        spec:
+            containers:
+                - name: backend
+                  image: mini-project-backend
+                  imagePullPolicy: IfNotPresent
+                  env:
+                    - name: IMAGEKIT_PRIVATE_KEY
+                      value: "private_Pd7Co1ezCes0qhBQiJQzE8zRaT8="
+                    - name: IMAGEKIT_PUBLIC_KEY
+                      value: "public_IOlUQf45QUonzTM+B103oDc7kyc="
+                    - name: IMAGEKIT_URL_ENDPOINT
+                      value: "https://ik.imagekit.io/rtjw84ugo"
+                    - name: JWT_SECRET
+                      value: "monika8102"
+                    - name: MONGO_URI
+                      value: "mongodb+srv://monika:9875@cluster0.9obawtw.mongodb.net/?appName=Cluster0"
+                    - name: PORT
+                      value: "5000"
+                  ports:
+                    - name: backend-5000
+                      containerPort: 5000
