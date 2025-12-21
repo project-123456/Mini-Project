@@ -45,16 +45,8 @@ coverage/
 .temp/
 tmp/
 
-# ===================================
-# Environment Files
-# ===================================
-.env
-.env.local
-.env.development
-.env.production
-.env.test
-.env.*
-!.env.example
+
+
 
 # ===================================
 # Logs
@@ -91,8 +83,8 @@ Thumbs.db
 # ===================================
 /frontend/node_modules/
 /frontend/dist/
-/frontend/.env
-/frontend/.env.local
+/frontend/
+/frontend/
 /frontend/.vercel
 /frontend/.netlify
 /frontend/.output
