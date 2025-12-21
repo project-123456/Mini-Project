@@ -5,14 +5,19 @@ services:
     build: ./backend
     ports:
       - "5000:5000"
-    env_file:
-      - ./backend/.env
+    environment:
+      MONGO_URI: mongodb+srv://monika:9875@cluster0.9obawtw.mongodb.net/?appName=Cluster0
+      IMAGEKIT_PUBLIC_KEY: public_IOlUQf45QUonzTM+B103oDc7kyc=
+      IMAGEKIT_PRIVATE_KEY: private_Pd7Co1ezCes0qhBQiJQzE8zRaT8=
+      IMAGEKIT_URL_ENDPOINT: https://ik.imagekit.io/rtjw84ugo
+      JWT_SECRET: monika8102
+      PORT: 5000
 
   frontend:
     build: ./frontend
     ports:
       - "3000:3000"
-    env_file:
-      - ./frontend/.env.example
+    environment:
+      VITE_API_URL: http://localhost:5000/api
     depends_on:
       - backend

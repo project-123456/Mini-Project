@@ -29,7 +29,7 @@ tmp/
 .env.production
 .env.test
 .env.*
-!.env.example
+.env.example
 
 # ===================================
 # Logs
@@ -68,6 +68,7 @@ Thumbs.db
 /frontend/dist/
 /frontend/.env
 /frontend/.env.local
+/frontend/.env.example
 /frontend/.vercel
 /frontend/.netlify
 /frontend/.output
