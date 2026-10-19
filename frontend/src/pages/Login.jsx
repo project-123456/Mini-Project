@@ -12,11 +12,14 @@ export default function Login({ setUser }) {
     e.preventDefault();
     setError("");
     try {
-      const res = await loginUser({ email, password });
+      const res = await loginUser({
+        email: email.trim().toLowerCase(),
+        password,
+      });
       // res should be { token, user }
       console.log("LOGIN RESPONSE 👉", res);
-      if (!res.token) {
-  throw new Error("Token not received");
+     if (!res.token) {
+  throw new Error(res.message || "Token not received");
 }
 
       localStorage.setItem("token", res.token);

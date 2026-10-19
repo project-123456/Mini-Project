@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import Navbar from "./components/Navbar";
 import Insights from "./components/Insights";
 import FloatingChatbot from "./components/ChatBot";
+import WellnessDashboard from "./components/WellnessDashboard";
 
 import Dashboard from "./components/Dashboard";
 import Login from "./pages/Login";
@@ -72,8 +73,22 @@ function App() {
 
       <Routes>
         <Route path="/" element={<Home user={user}/>} />
+                <Route
+          path="/dashboard"
+          element={
+            <WellnessDashboard
+              user={user}
+              token={token}
+              moods={moods}
+              setMoods={setMoods}
+              journals={journals}
+              onAddJournal={handleAddJournal}
+            />
+          }
+        />
         
-        <Route path="/dashboard" element={<Dashboard user={user} />} />
+
+        //<Route path="/dashboard" element={<Dashboard user={user} />} />
         <Route path="/login" element={<Login setUser={setUser} />} />
         <Route path="/register" element={<Register />} />
         <Route path="/profile" element={<Profile user={user} />} />

@@ -81,3 +81,21 @@ Thumbs.db
 *.zip
 *.rar
 *.7z
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+
+# Build files
+frontend/dist/
+backend/__pycache__/
+__pycache__/
+*.pyc
+
+# Private model and audio files
+backend/ml_models/
+backend/Laxmi-voice.ogg

@@ -1,4 +1,5 @@
 const API_URL = import.meta.env.VITE_API_URL;
+const ML_API_URL = "http://localhost:5002";
 
 
 export const registerUser = async (data) => {
@@ -70,9 +71,34 @@ export const logMood = async (data, token) => {
   return res.json();
 };
 
+
 export const getMoods = async (token) => {
+  if (!token) {
+    throw new Error("Login token missing. Please log in again.");
+  }
+
   const res = await fetch(`${API_URL}/moods`, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   });
+
+  if (!res.ok) {
+    const message = await res.text();
+    throw new Error(`Mood API error ${res.status}: ${message}`);
+  }
+
+  return res.json();
+};
+
+export const predictEmotion = async (audioFile) => {
+  const formData = new FormData();
+  formData.append("file", audioFile);
+
+  const res = await fetch(`${ML_API_URL}/predict`, {
+    method: "POST",
+    body: formData,
+  });
+
   return res.json();
 };
