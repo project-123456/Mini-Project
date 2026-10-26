@@ -59,7 +59,12 @@ export const uploadImage = async (base64, token) => {
   return res.json();
 };
 
+
 export const logMood = async (data, token) => {
+  if (!token) {
+    throw new Error("Please log in to save your mood.");
+  }
+
   const res = await fetch(`${API_URL}/moods`, {
     method: "POST",
     headers: {
@@ -68,8 +73,16 @@ export const logMood = async (data, token) => {
     },
     body: JSON.stringify(data),
   });
-  return res.json();
+
+  const result = await res.json();
+
+  if (!res.ok) {
+    throw new Error(result.message || "Mood save nahi hua.");
+  }
+
+  return result;
 };
+
 
 
 export const getMoods = async (token) => {

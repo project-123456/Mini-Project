@@ -41,6 +41,9 @@ export const loginUser = async (req, res) => {
       });
     }
 
+    console.log("User found:", Boolean(user));
+    console.log("Stored password format:", user.password?.startsWith("$2"));
+
     const isMatch = await user.matchPassword(password);
 
     if (!isMatch) {

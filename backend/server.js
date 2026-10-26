@@ -7,6 +7,8 @@ import journalRoutes from "./routes/journalRoutes.js";
 import moodRoutes from "./routes/moodRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
 
+import chatRoutes from "./routes/chatRoutes.js";
+
 dotenv.config();
 const app = express();
 
@@ -18,6 +20,8 @@ app.use(express.json());
 connectDB();
 
 // Routes
+
+app.use("/api/chat", chatRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/journals", journalRoutes);
 app.use("/api/moods", moodRoutes);

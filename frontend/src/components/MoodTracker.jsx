@@ -1,255 +1,430 @@
-import { useState, useEffect } from "react";
-import { logMood, getMoods, predictEmotion } from "../utils/api";
-import { motion } from "framer-motion";
 
-const MOODS = [
-  { label: "rad", value: "happy", emoji: "😄", color: "text-emerald-500" },
-  { label: "good", value: "calm", emoji: "🙂", color: "text-lime-500" },
-  { label: "meh", value: "neutral", emoji: "😐", color: "text-sky-500" },
-  { label: "bad", value: "sad", emoji: "😔", color: "text-orange-500" },
-  { label: "awful", value: "anxious", emoji: "😣", color: "text-red-500" },
+
+import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { logMood } from "../utils/api";
+
+const MOOD_OPTIONS = [
+  { label: "Happy", emoji: "😊", value: 5, color: "#f6c85f" },
+  { label: "Calm", emoji: "😌", value: 4, color: "#8ec9ad" },
+  { label: "Neutral", emoji: "😐", value: 3, color: "#b8c8e8" },
+  { label: "Sad", emoji: "😔", value: 2, color: "#a6b8ed" },
+  { label: "Angry", emoji: "😠", value: 1, color: "#f19a9a" },
 ];
 
-// Safe date formatter
-const formatDateTime = (dateString) => {
-  if (!dateString) return {};
-
-  const date = new Date(dateString);
-
-  return {
-    date: date.toLocaleDateString(undefined, {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    }),
-
-    time: date.toLocaleTimeString(undefined, {
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-  };
+const getDateKey = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 };
 
-export default function MoodTracker({ token }) {
-  const [moods, setMoods] = useState([]);
-  const [loading, setLoading] = useState(false);
+const getMood = (entry) => {
+  if (typeof entry === "string") {
+    return MOOD_OPTIONS.find(
+      (mood) => mood.label.toLowerCase() === entry.toLowerCase()
+    );
+  }
 
-  // Voice emotion states
-  const [recording, setRecording] = useState(false);
-  const [emotion, setEmotion] = useState("");
+  if (entry && typeof entry === "object") {
+    const value = entry.mood || entry.label || entry.name || entry.emotion;
+    return MOOD_OPTIONS.find(
+      (mood) => mood.label.toLowerCase() === String(value || "").toLowerCase()
+    );
+  }
 
-  // Load mood history
-  useEffect(() => {
-  if (!token) {
-    setMoods([]);
+  return undefined;
+};
+
+export default function MoodTracker({ moods = [], setMoods, token }) {
+  const [selectedMood, setSelectedMood] = useState(null);
+  const [notice, setNotice] = useState("");
+
+  const today = new Date();
+  const todayKey = getDateKey(today);
+
+  const moodEntries = useMemo(() => {
+    if (!Array.isArray(moods)) return [];
+
+    return moods
+      .map((entry) => {
+        const rawDate = entry.date || entry.createdAt || entry.updatedAt;
+        if (!rawDate) return null;
+
+        const date = new Date(rawDate);
+        if (Number.isNaN(date.getTime())) return null;
+
+        return {
+          ...entry,
+          dateKey: getDateKey(date),
+          parsedMood: getMood(entry),
+        };
+      })
+      .filter(Boolean);
+  }, [moods]);
+
+  const todayEntry = moodEntries.find((entry) => entry.dateKey === todayKey);
+  const todayMood = todayEntry?.parsedMood;
+
+  const week = useMemo(() => {
+    const day = today.getDay();
+    const mondayOffset = day === 0 ? -6 : 1 - day;
+    const monday = new Date(today);
+    monday.setDate(today.getDate() + mondayOffset);
+
+    return Array.from({ length: 7 }, (_, index) => {
+      const date = new Date(monday);
+      date.setDate(monday.getDate() + index);
+
+      const key = getDateKey(date);
+      const entry = moodEntries.find((item) => item.dateKey === key);
+
+      return {
+        key,
+        label: date.toLocaleDateString("en-US", { weekday: "short" }),
+        mood: entry?.parsedMood,
+        date,
+      };
+    });
+  }, [moodEntries]);
+
+  const recentDays = useMemo(() => {
+    return Array.from({ length: 7 }, (_, index) => {
+      const date = new Date(today);
+      date.setDate(today.getDate() - (6 - index));
+
+      const key = getDateKey(date);
+      const entry = moodEntries.find((item) => item.dateKey === key);
+
+      return {
+        key,
+        date,
+        mood: entry?.parsedMood,
+      };
+    });
+  }, [moodEntries]);
+
+  const loggedThisWeek = week.filter((day) => day.mood).length;
+  const average = week.filter((day) => day.mood).length
+    ? (
+        week.reduce((sum, day) => sum + (day.mood?.value || 0), 0) /
+        loggedThisWeek
+      ).toFixed(1)
+    : null;
+
+      
+const handleSelectMood = async (mood) => {
+  const currentToken = token || localStorage.getItem("token");
+
+  if (!currentToken) {
+    setNotice("Please log in to save your mood.");
     return;
   }
 
-  let active = true;
+  if (typeof setMoods !== "function") {
+    setNotice("Mood update function is not connected.");
+    return;
+  }
 
-  getMoods(token)
-    .then((data) => {
-      if (active) {
-        setMoods(Array.isArray(data) ? data : []);
-      }
-    })
-    .catch((error) => {
-      console.error("Failed to load mood history:", error);
-      if (active) setMoods([]);
+  try {
+    const savedMood = await logMood(
+      { mood: mood.label.toLowerCase() },
+      currentToken
+    );
+
+    setSelectedMood(mood);
+
+    setMoods((previousMoods) => {
+      const today = new Date().toDateString();
+
+      const otherMoods = previousMoods.filter((entry) => {
+        const entryDate = new Date(
+          entry.createdAt || entry.date || entry.updatedAt
+        ).toDateString();
+
+        return entryDate !== today;
+      });
+
+      return [savedMood, ...otherMoods];
     });
 
-  return () => {
-    active = false;
-  };
-}, [token]);
+    setNotice("Your mood has been saved successfully!");
+  } catch (error) {
+    console.error("Mood save error:", error);
+    setNotice(error.message || "Unable to save mood.");
+  }
+};
 
-  // Select manual mood
-  const handleSelectMood = async (moodValue) => {
-    if (loading) return;
 
-    setLoading(true);
 
-    try {
-      const res = await logMood(
-        {
-          mood: moodValue,
-        },
-        token
-      );
-
-      if (res?._id) {
-        setMoods((prev) => [res, ...prev]);
-      }
-    } catch (error) {
-      console.error("Mood logging error:", error);
-      alert("Unable to save mood.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Voice emotion prediction
-  const handleVoiceUpload = async (e) => {
-    const file = e.target.files?.[0];
-
-    if (!file) return;
-
-    // Clear previous emotion
-    setEmotion("");
-
-    // Start analyzing
-    setRecording(true);
-
-    try {
-      const result = await predictEmotion(file);
-
-      console.log("ML Prediction:", result);
-
-      if (result?.emotion) {
-        setEmotion(result.emotion);
-      } else if (result?.error) {
-        alert(result.error);
-      } else {
-        alert("Emotion could not be detected.");
-      }
-    } catch (error) {
-      console.error("Voice emotion error:", error);
-      alert("Unable to analyze voice. Please try again.");
-    } finally {
-      setRecording(false);
-
-      // Reset file input
-      e.target.value = "";
-    }
-  };
-
-  const now = formatDateTime(new Date());
+  
 
   return (
-    <div className="min-h-screen bg-[#f4ede4] flex items-center justify-center p-6">
-      <div className="w-full max-w-md bg-white/70 backdrop-blur-md rounded-3xl shadow-lg p-8">
+    <div className="min-h-screen bg-[#e6f5ef] p-3 sm:p-6 lg:p-8">
+      <div className="mx-auto flex min-h-[calc(100vh-48px)] max-w-7xl overflow-hidden rounded-3xl border border-white bg-white shadow-xl">
+        {/* Sidebar */}
+        <aside className="hidden w-52 shrink-0 flex-col border-r border-slate-100 bg-white p-5 md:flex">
+          <Link to="/" className="mb-9 text-lg font-bold text-slate-800">
+            🌿 MindJournal
+          </Link>
 
-        {/* Header */}
-        <h2 className="text-xl font-semibold text-center text-[#2f3f3f]">
-          How are you?
-        </h2>
+          <p className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
+            Menu
+          </p>
 
-        {/* Date & Time */}
-        <p className="text-center text-xs text-gray-500 mt-2">
-          Today, {now.date} • {now.time}
-        </p>
-
-        {/* Manual Mood Selector */}
-        <div className="flex justify-between mt-8">
-          {MOODS.map((m) => (
-            <motion.button
-              key={m.value}
-              whileTap={{ scale: 0.9 }}
-              whileHover={{ scale: 1.1 }}
-              onClick={() => handleSelectMood(m.value)}
-              disabled={loading}
-              className="flex flex-col items-center"
+          <nav className="space-y-2 text-sm">
+            <Link
+              to="/dashboard"
+              className="block rounded-xl px-3 py-3 text-slate-600 hover:bg-slate-50"
             >
-              <div
-                className={`text-4xl ${m.color} ${
-                  loading ? "opacity-50" : ""
-                }`}
-              >
-                {m.emoji}
-              </div>
+              ▦ Dashboard
+            </Link>
 
-              <span className="text-xs mt-1 text-gray-500">
-                {m.label}
-              </span>
-            </motion.button>
-          ))}
-        </div>
-
-        {/* Voice Emotion Detection */}
-        <div className="mt-8 text-center">
-
-          <h3 className="text-sm font-semibold text-gray-600 mb-3">
-            🎤 Detect Emotion from Voice
-          </h3>
-
-          <label
-            className={`inline-block cursor-pointer text-white px-5 py-2 rounded-full transition ${
-              recording
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-[#6a8c68] hover:bg-[#789b74]"
-            }`}
-          >
-            {recording ? "Analyzing... 🎧" : "Upload Voice 🎙️"}
-
-            <input
-              type="file"
-              accept="audio/*"
-              onChange={handleVoiceUpload}
-              disabled={recording}
-              className="hidden"
-            />
-          </label>
-
-          {/* Emotion Result */}
-          {emotion && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-4 bg-white/70 rounded-xl p-4"
+            <Link
+              to="/moods"
+              className="block rounded-xl bg-indigo-50 px-3 py-3 font-semibold text-indigo-700"
             >
-              <p className="text-sm text-gray-500">
-                Detected Emotion
-              </p>
+              ☺ Mood Tracker
+            </Link>
 
-              <p className="text-2xl font-semibold capitalize text-[#6a8c68] mt-1">
-                {emotion}
-              </p>
+            <Link
+              to="/journals"
+              className="block rounded-xl px-3 py-3 text-slate-600 hover:bg-slate-50"
+            >
+              ▤ Journal
+            </Link>
 
-              <p className="text-xs text-gray-400 mt-2">
-                Emotion detected using AI voice analysis.
-              </p>
-            </motion.div>
-          )}
-        </div>
+            <Link
+              to="/insights"
+              className="block rounded-xl px-3 py-3 text-slate-600 hover:bg-slate-50"
+            >
+              ✧ Insights
+            </Link>
+          </nav>
 
-        {/* Divider */}
-        <div className="h-px bg-gray-300 my-8 opacity-50" />
-
-        {/* Mood History */}
-        <h3 className="text-sm font-semibold text-gray-600 mb-3">
-          Mood History
-        </h3>
-
-        <div className="space-y-2 max-h-48 overflow-y-auto">
-
-          {moods.length === 0 && (
-            <p className="text-sm text-gray-400 text-center">
-              No moods logged yet
+          <div className="mt-auto rounded-2xl bg-[#eef8f3] p-4">
+            <p className="font-semibold text-slate-700">Need a moment?</p>
+            <p className="mt-2 text-xs leading-5 text-slate-500">
+              Take a breath. You don't need to solve everything today.
             </p>
-          )}
+          </div>
+        </aside>
 
-          {moods.map((m) => {
-            const { date, time } = formatDateTime(m.createdAt);
+        {/* Main */}
+        <main className="min-w-0 flex-1 bg-[#fcfdfd] p-4 sm:p-6 lg:p-8">
+          <header className="mb-7 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h1 className="text-2xl font-bold text-slate-800">
+                Mood Tracker
+              </h1>
+              <p className="mt-1 text-sm text-slate-500">
+                Understand yourself better, one day at a time.
+              </p>
+            </div>
 
-            return (
-              <div
-                key={m._id}
-                className="flex justify-between items-center bg-white/60 rounded-xl px-4 py-2"
-              >
-                <span className="capitalize text-gray-700">
-                  {m.mood}
-                </span>
+            <span className="rounded-xl border border-slate-100 bg-white px-3 py-2 text-xs text-slate-500">
+              {today.toLocaleDateString("en-US", {
+                month: "long",
+                day: "numeric",
+                year: "numeric",
+              })}
+            </span>
+          </header>
 
-                <span className="text-xs text-gray-400 text-right">
-                  {date}
-                  <br />
-                  {time}
+          {/* Today's mood and week */}
+          <section className="grid gap-4 xl:grid-cols-[1.1fr_2fr]">
+            <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+              <h2 className="font-semibold text-slate-800">Today's Mood</h2>
+              <p className="mt-1 text-xs text-slate-500">
+                How are you feeling right now?
+              </p>
+
+              <div className="mt-5 flex items-center gap-3">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#f4f6fb] text-3xl">
+                  {todayMood?.emoji || selectedMood?.emoji || "🙂"}
+                </div>
+                <div>
+                  <p className="font-semibold text-slate-700">
+                    {todayMood?.label || selectedMood?.label || "Check in today"}
+                  </p>
+                  <p className="text-xs text-slate-400">
+                    {todayMood ? "Mood recorded" : "Choose how you feel"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-5 flex flex-wrap gap-2">
+                {MOOD_OPTIONS.map((mood) => (
+                  <button
+                    key={mood.label}
+                    type="button"
+                    onClick={() => handleSelectMood(mood)}
+                    aria-label={`Select ${mood.label} mood`}
+                    className={`flex h-10 w-10 items-center justify-center rounded-full border text-xl transition hover:scale-105 ${
+                      selectedMood?.label === mood.label
+                        ? "border-indigo-500 ring-2 ring-indigo-100"
+                        : "border-slate-100"
+                    }`}
+                    style={{ backgroundColor: `${mood.color}35` }}
+                  >
+                    {mood.emoji}
+                  </button>
+                ))}
+              </div>
+
+              {notice && (
+                <p className="mt-3 text-xs leading-5 text-amber-700">
+                  {notice}
+                </p>
+              )}
+            </div>
+
+            <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <h2 className="font-semibold text-slate-800">
+                    Weekly Mood Trend
+                  </h2>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Your mood check-ins this week.
+                  </p>
+                </div>
+
+                <span className="rounded-lg bg-indigo-50 px-3 py-1.5 text-xs text-indigo-700">
+                  This week
                 </span>
               </div>
-            );
-          })}
 
-        </div>
+              <div className="mt-6 grid grid-cols-7 gap-1 sm:gap-3">
+                {week.map((day) => (
+                  <div
+                    key={day.key}
+                    className="flex flex-col items-center gap-2"
+                  >
+                    <div
+                      className="flex h-10 w-10 items-center justify-center rounded-full text-lg sm:h-11 sm:w-11"
+                      style={{
+                        backgroundColor: day.mood
+                          ? `${day.mood.color}45`
+                          : "#f1f5f9",
+                      }}
+                    >
+                      {day.mood?.emoji || "·"}
+                    </div>
+                    <span className="text-xs text-slate-500">
+                      {day.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-5 rounded-xl bg-[#f5f8ff] px-4 py-3 text-sm text-slate-600">
+                {loggedThisWeek} of 7 days recorded
+                {average ? ` · Average mood score: ${average}/5` : ""}
+              </div>
+            </div>
+          </section>
+
+          {/* Daily trend and insight */}
+          <section className="mt-5 grid gap-4 xl:grid-cols-[2fr_1fr]">
+            <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+              <h2 className="font-semibold text-slate-800">
+                Daily Mood Trend
+              </h2>
+              <p className="mt-1 text-xs text-slate-500">
+                Your recorded moods over the last seven days.
+              </p>
+
+              <div className="mt-6 flex h-48 items-end justify-around gap-2 border-b border-slate-100 pb-2">
+                {recentDays.map((day) => {
+                  const score = day.mood?.value || 0;
+                  const height = score ? `${score * 20}%` : "4px";
+
+                  return (
+                    <div
+                      key={day.key}
+                      className="flex h-full flex-1 flex-col items-center justify-end gap-2"
+                    >
+                      <div className="flex h-full w-full items-end justify-center">
+                        <div
+                          title={
+                            day.mood
+                              ? `${day.mood.label}: ${score}/5`
+                              : "No mood recorded"
+                          }
+                          className="w-full max-w-8 rounded-t-lg transition-all"
+                          style={{
+                            height,
+                            minHeight: "4px",
+                            backgroundColor: day.mood
+                              ? day.mood.color
+                              : "#edf1f6",
+                          }}
+                        />
+                      </div>
+
+                      <span className="text-[10px] text-slate-400">
+                        {day.date.toLocaleDateString("en-US", {
+                          day: "2-digit",
+                        })}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <p className="mt-4 text-xs leading-5 text-slate-500">
+                Record your mood each day to build a more useful trend.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+              <h2 className="font-semibold text-slate-800">Your Daily Insight</h2>
+              <p className="mt-1 text-xs text-slate-500">
+                Small steps for your wellbeing.
+              </p>
+
+              <div className="mt-5 space-y-3">
+                <div className="rounded-xl bg-[#f0f8f4] p-4">
+                  <p className="font-medium text-slate-700">
+                    🌿 Take a mindful break
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-slate-500">
+                    Pause for a few minutes and notice your breathing.
+                  </p>
+                </div>
+
+                <div className="rounded-xl bg-[#f3f2ff] p-4">
+                  <p className="font-medium text-slate-700">
+                    📔 Reflect on your day
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-slate-500">
+                    Writing down a thought can help you understand your feelings.
+                  </p>
+                  <Link
+                    to="/journals"
+                    className="mt-2 inline-block text-xs font-semibold text-indigo-700 hover:underline"
+                  >
+                    Open Journal →
+                  </Link>
+                </div>
+
+                <div className="rounded-xl bg-[#fff5eb] p-4">
+                  <p className="font-medium text-slate-700">
+                    💧 Care for yourself
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-slate-500">
+                    Drink water, stretch, or take a short walk if you can.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <p className="mt-6 text-center text-xs text-slate-400">
+            Every feeling matters. Be kind to yourself 💚
+          </p>
+        </main>
       </div>
     </div>
   );
